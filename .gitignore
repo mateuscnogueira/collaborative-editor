@@ -1,0 +1,19 @@
+# Dependências
+node_modules/
+
+# Compilação TypeScript
+dist/
+
+# Arquivos de ambiente
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# Banco SQLite
+*.sqlite
+*.sqlite3
+
+# Arquivos do sistema
+.DS_Store
