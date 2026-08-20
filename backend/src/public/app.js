@@ -1,5 +1,6 @@
 let socket = null;
 let userId = null;
+let onlineUsers = [];
 
 const connectButton = document.getElementById("connectButton");
 
@@ -14,7 +15,6 @@ const logs = document.getElementById("logs");
 const usersList = document.getElementById("users");
 
 function addLog(message) {
-
     const div = document.createElement("div");
 
     div.className = "log";
@@ -26,9 +26,30 @@ function addLog(message) {
     logs.scrollTop = logs.scrollHeight;
 }
 
-function updateUsers(event) {
+function renderUsers() {
+    usersList.innerHTML = "";
 
-    addLog(event.message);
+    onlineUsers.forEach(user => {
+
+        const li = document.createElement("li");
+
+        li.textContent = user;
+
+        usersList.appendChild(li);
+    });
+}
+
+function addUser(user) {
+    if (!onlineUsers.includes(user)) {
+        onlineUsers.push(user);
+    }
+    renderUsers();
+}
+
+function removeUser(user) {
+    onlineUsers = onlineUsers.filter(item => item !== user);
+    renderUsers();
+
 }
 
 connectButton.onclick = () => {
@@ -64,15 +85,22 @@ connectButton.onclick = () => {
                 break;
 
             case "user-connected":
-                updateUsers(data);
+                addUser(data.userId);
+                addLog(data.message);
                 break;
 
             case "user-disconnected":
-                updateUsers(data);
+                removeUser(data.userId);
+                addLog(data.message);
                 break;
 
             case "text-change":
                 textarea.value = data.content;
+                break;
+
+            case "document-state":
+                textarea.value = data.content;
+                addLog("Documento sincronizado.");
                 break;
         }
     };

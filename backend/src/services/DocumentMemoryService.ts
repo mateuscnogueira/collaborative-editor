@@ -35,4 +35,9 @@ export class DocumentMemoryService implements IDocumentRepository {
   getAllDocuments(): Document[] {
     return Array.from(this.documents.values());
   }
+
+  // Retorna o estado atual do documento (seu conteúdo)
+  getCurrentDocument(documentId: string): Document {
+    return this.getDocument(documentId);
+  }
 }

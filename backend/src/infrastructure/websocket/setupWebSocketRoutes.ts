@@ -16,18 +16,15 @@ export function setupWebSocketRoutes(wss: WebSocketServer): void {
   );
 
   const webSocketController = new WebSocketController(
-    updateDocumentUseCase
+    updateDocumentUseCase,
+    documentRepository
   );
 
   wss.on("connection", (ws, request) => {
 
-    const url = new URL(
-      request.url || "/",
-      "http://localhost"
-    );
+    const url = new URL(request.url || "/","http://localhost");
 
-    const userId =
-      url.searchParams.get("userId") || "anonymous";
+    const userId = url.searchParams.get("userId") || "anonymous";
 
     webSocketController.handleConnection(
       ws,
