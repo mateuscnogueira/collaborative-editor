@@ -1,14 +1,50 @@
 version: "3.9"
 
 services:
+  backend:
+    build:
+      context: ./backend
+
+    container_name: collaborative-backend
+
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      RABBITMQ_URL: amqp://rabbitmq:5672
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./worker
+
+    container_name: collaborative-worker
+
+    restart: unless-stopped
+
+    environment:
+      RABBITMQ_URL: amqp://rabbitmq:5672
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
   rabbitmq:
     image: rabbitmq:3-management
+
     container_name: collaborative-rabbitmq
+
     restart: unless-stopped
 
     ports:
       - "5672:5672"
       - "15672:15672"
+
 
     environment:
       RABBITMQ_DEFAULT_USER: guest
@@ -16,6 +52,20 @@ services:
 
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "rabbitmq-diagnostics",
+          "check_port_connectivity"
+        ]
+
+      interval: 10s
+
+      timeout: 5s
+
+      retries: 5
 
 volumes:
   rabbitmq_data:

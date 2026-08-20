@@ -11,27 +11,26 @@ export async function connectRabbitMQ(){
             "amqp://localhost:5672"
         );
 
-    channel =
-        await connection.createChannel();
+    channel = await connection.createChannel();
 
     await channel.assertQueue(
         QUEUE_NAME,
         {
-            durable:true
+            durable: true
         }
     );
 
-    console.log(
-        "✅ Worker conectado ao RabbitMQ"
-    );
+    console.log("✅ Worker conectado ao RabbitMQ");
 }
 
 export async function consumeQueue(
-    callback: (message:any)=>Promise<void>
+    callback: (message: any) => Promise<void>
 ){
 
     await channel.consume(
+
         QUEUE_NAME,
+
         async(message)=>{
 
             if(!message){
@@ -44,7 +43,5 @@ export async function consumeQueue(
         }
     );
 
-    console.log(
-        "👂 Worker aguardando mensagens..."
-    );
+    console.log("👂 Worker aguardando mensagens...");
 }
