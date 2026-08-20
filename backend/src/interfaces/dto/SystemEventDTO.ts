@@ -1,9 +1,16 @@
 export interface SystemEventDTO {
-  type: "user-connected" | "user-disconnected";
 
-  userId: string;
+  type:
+    | "system"
+    | "user-connected"
+    | "user-disconnected";
 
-  onlineUsers: number;
+  message: string;
+
+  userId?: string;
+
+  onlineUsers?: number;
 
   timestamp: string;
+
 }

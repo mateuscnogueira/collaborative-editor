@@ -1,6 +1,7 @@
 import { Document } from "../domain/entities/Document";
+import { IDocumentRepository } from "../domain/repositories/IDocumentRepository";
 
-export class DocumentMemoryService {
+export class DocumentMemoryService implements IDocumentRepository {
   private documents: Map<string, Document> = new Map();
 
   /* Retorna um documento existente.
