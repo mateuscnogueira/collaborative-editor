@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Collaborative Editor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1>Editor Colaborativo</h1>
+
+    <section id="login">
+        <h3>Entrar no documento</h3>
+
+        <input 
+            id="userId"
+            type="text"
+            placeholder="Digite seu nome"
+        />
+
+        <button id="connectButton">
+            Entrar
+        </button>
+    </section>
+
+    <section id="editor" hidden>
+        <h3>Documento</h3>
+
+        <textarea
+            id="documentContent"
+            placeholder="Digite seu texto..."
+        ></textarea>
+    </section>
+
+    <section>
+        <h3>Usuários online</h3>
+
+        <ul id="users">
+        </ul>
+    </section>
+
+    <section>
+        <h3>Log de eventos</h3>
+
+        <div id="logs"></div>
+    </section>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
