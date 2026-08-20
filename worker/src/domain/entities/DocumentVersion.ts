@@ -4,6 +4,7 @@ export class DocumentVersion {
     public documentId: string,
     public content: string,
     public userId: string,
+    public cursorPosition: number,
     public createdAt: Date = new Date()
   ) {}
 }

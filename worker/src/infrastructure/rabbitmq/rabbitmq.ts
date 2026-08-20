@@ -1,19 +1,50 @@
 import amqp from "amqplib";
 
-let connection: amqp.ChannelModel;
+export const QUEUE_NAME = "document_versions";
 
-export async function connectRabbitMQ() {
+let channel: amqp.Channel;
 
-    connection = await amqp.connect(
-        process.env.RABBITMQ_URL || "amqp://localhost:5672"
+export async function connectRabbitMQ(){
+    const connection =
+        await amqp.connect(
+            process.env.RABBITMQ_URL ||
+            "amqp://localhost:5672"
+        );
+
+    channel =
+        await connection.createChannel();
+
+    await channel.assertQueue(
+        QUEUE_NAME,
+        {
+            durable:true
+        }
     );
 
-    console.log("✅ Worker conectado ao RabbitMQ.");
-
+    console.log(
+        "✅ Worker conectado ao RabbitMQ"
+    );
 }
 
-export function getRabbitMQConnection() {
+export async function consumeQueue(
+    callback: (message:any)=>Promise<void>
+){
 
-    return connection;
+    await channel.consume(
+        QUEUE_NAME,
+        async(message)=>{
 
+            if(!message){
+                return;
+            }
+
+            await callback(message);
+
+            channel.ack(message);
+        }
+    );
+
+    console.log(
+        "👂 Worker aguardando mensagens..."
+    );
 }

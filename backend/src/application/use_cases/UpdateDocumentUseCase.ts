@@ -23,6 +23,8 @@ export class UpdateDocumentUseCase {
       crypto.randomUUID(),
       document.id,
       document.content,
+      change.userId,
+      change.cursorPosition,
       new Date()
     );
 
