@@ -1,7 +1,11 @@
 import WebSocket from "ws";
+
 import { UpdateDocumentUseCase } from "../../application/use_cases/UpdateDocumentUseCase";
+
 import { TextChange } from "../../domain/entities/TextChange";
+
 import { TextChangeDTO } from "../dto/TextChangeDTO";
+
 import { SystemEventDTO } from "../dto/SystemEventDTO";
 
 export class WebSocketController {
@@ -12,31 +16,49 @@ export class WebSocketController {
 
   handleConnection(
     ws: WebSocket,
-    clients: Set<WebSocket>
+    userId: string,
+    clients: Map<WebSocket, string>
   ): void {
 
-    clients.add(ws);
+    clients.set(ws, userId);
 
     console.log(
-      `🔌 Cliente conectado (${clients.size} online)`
+      `🔌 ${userId} conectado (${clients.size} online)`
     );
 
     const connectedMessage: SystemEventDTO = {
-        type: "system",
-        message: "Conectado ao servidor colaborativo.",
-        timestamp: new Date().toISOString()
+      type: "system",
+      message: `Bem-vindo, ${userId}!`,
+      timestamp: new Date().toISOString()
     };
 
     ws.send(
       JSON.stringify(connectedMessage)
     );
 
+    const userConnectedEvent: SystemEventDTO = {
+      type: "user-connected",
+      message: `${userId} entrou no documento.`,
+      userId,
+      onlineUsers: clients.size,
+      timestamp: new Date().toISOString()
+    };
+
+    const connectedPayload =
+      JSON.stringify(userConnectedEvent);
+
+    clients.forEach((_, client) => {
+
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(connectedPayload);
+      }
+    });
+
     ws.on("message", (message) => {
 
-      const dto =
-        JSON.parse(
-          message.toString()
-        ) as TextChangeDTO;
+      const dto = JSON.parse(
+        message.toString()
+      ) as TextChangeDTO;
 
       const change = new TextChange(
         dto.documentId,
@@ -50,11 +72,9 @@ export class WebSocketController {
 
       const payload = JSON.stringify(dto);
 
-      clients.forEach((client) => {
+      clients.forEach((_, client) => {
 
-        if (
-          client.readyState === WebSocket.OPEN
-        ) {
+        if (client.readyState === WebSocket.OPEN) {
           client.send(payload);
         }
       });
@@ -65,8 +85,27 @@ export class WebSocketController {
       clients.delete(ws);
 
       console.log(
-        `❌ Cliente desconectado (${clients.size} online)`
+        `❌ ${userId} desconectado (${clients.size} online)`
       );
+
+      const disconnectedEvent: SystemEventDTO = {
+        type: "user-disconnected",
+        message: `${userId} saiu do documento.`,
+        userId,
+        onlineUsers: clients.size,
+        timestamp: new Date().toISOString()
+      };
+
+      const payload =
+        JSON.stringify(disconnectedEvent);
+
+      clients.forEach((_, client) => {
+
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(payload);
+        }
+
+      });
     });
   }
 }

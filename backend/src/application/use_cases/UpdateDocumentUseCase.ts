@@ -1,26 +1,27 @@
+import { randomUUID } from "crypto";
 import { TextChange } from "../../domain/entities/TextChange";
-import { DocumentMemoryService } from "../../services/DocumentMemoryService";
-import { RabbitMQPublisher } from "../../infrastructure/rabbitmq/RabbitMQPublisher";
 import { DocumentVersion } from "../../domain/entities/DocumentVersion";
+import { IDocumentRepository } from "../../domain/repositories/IDocumentRepository";
+import { RabbitMQPublisher } from "../../infrastructure/rabbitmq/RabbitMQPublisher";
 
 export class UpdateDocumentUseCase {
+
   constructor(
-    private documentService: DocumentMemoryService,
+    private documentRepository: IDocumentRepository,
     private publisher: RabbitMQPublisher
   ) {}
 
   execute(change: TextChange): void {
 
-    // 1. Atualiza o documento atual em memória
-    const document = this.documentService.updateDocument(
+    // Atualiza o documento em memória
+    const document = this.documentRepository.updateDocument(
       change.documentId,
       change.content
     );
 
-
-    // 2. Cria um snapshot/versionamento
+    // Cria um snapshot da nova versão
     const version = new DocumentVersion(
-      crypto.randomUUID(),
+      randomUUID(),
       document.id,
       document.content,
       change.userId,
@@ -28,13 +29,11 @@ export class UpdateDocumentUseCase {
       new Date()
     );
 
-
-    // 3. Publica a nova versão para o Worker
+    // Publica para o RabbitMQ
     this.publisher.publish(version);
 
-
     console.log(
-      `Documento ${document.id} atualizado por ${change.userId}`
+      `📄 Documento ${document.id} atualizado por ${change.userId}`
     );
   }
 }
