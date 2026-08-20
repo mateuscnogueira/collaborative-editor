@@ -4,9 +4,9 @@
   "description": "Collaborative Editor Worker",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "start": "ts-node src/index.ts",
-    "build": "tsc"
+  "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+  "build": "tsc",
+  "start": "node dist/index.js"
   },
   "dependencies": {
     "amqplib": "^2.0.1",
