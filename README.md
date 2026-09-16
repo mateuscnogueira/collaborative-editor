@@ -194,3 +194,9 @@ docker restart collaborative-backend
 6. Após o reinício, observe os logs. O backend conectará ao RabbitMQ com sucesso e o _Polling Publisher_ (processo em background) lerá o banco de dados e disparará todas as mensagens pendentes para a fila de uma só vez, garantindo que nenhum dado tenha sido perdido durante a falha.
 
 ---
+
+# 5. Registro de Decisões Arquiteturais (ADR)
+
+As justificativas detalhadas para as tecnologias e protocolos escolhidos (WebSockets, RabbitMQ, Redis e Transactional Outbox) estão documentadas separadamente. 
+
+Consulte o arquivo [ADR.md](./ADR.md) na raiz deste repositório.
