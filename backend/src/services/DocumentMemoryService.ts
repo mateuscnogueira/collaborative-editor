@@ -1,43 +1,64 @@
 import { Document } from "../domain/entities/Document";
 import { IDocumentRepository } from "../domain/repositories/IDocumentRepository";
+import redisClient from "../infrastructure/redis/redisClient";
 
 export class DocumentMemoryService implements IDocumentRepository {
-  private documents: Map<string, Document> = new Map();
+  private static PREFIX = 'doc:';
 
-  /* Retorna um documento existente.
-  Caso não exista, cria automaticamente. */
-  getDocument(documentId: string): Document {
-    let document = this.documents.get(documentId);
+  async getDocument(documentId: string): Promise<Document> {
+    try {
+      const data = await redisClient.get(`${DocumentMemoryService.PREFIX}${documentId}`);
 
-    if (!document) {
-      document = new Document(
-        documentId,
-        "Documento sem título",
-        ""
-      );
+      if (data) {
+        const parsed = JSON.parse(data);
+        return new Document(parsed.id, parsed.title, parsed.content);
+      }
 
-      this.documents.set(documentId, document);
+      return new Document(documentId, "Documento sem título", "");
+      
+    } catch (error) {
+      console.error("Erro ao ler do Redis:", error);
+      return new Document(documentId, "Erro no Servidor", "");
     }
-
-    return document;
   }
 
-  // Atualiza o conteúdo do documento.
-  updateDocument(documentId: string, content: string): Document {
-    const document = this.getDocument(documentId);
-
+  async updateDocument(documentId: string, content: string): Promise<Document> {
+    const document = await this.getDocument(documentId);
     document.updateContent(content);
 
+    await redisClient.setEx(
+      `${DocumentMemoryService.PREFIX}${documentId}`,
+      86400,
+      JSON.stringify({
+        id: document.id,
+        title: document.title,
+        content: document.content
+      })
+    );
+
     return document;
   }
 
-  // Lista todos os documentos em memória.
-  getAllDocuments(): Document[] {
-    return Array.from(this.documents.values());
+  async getAllDocuments(): Promise<Document[]> {
+    try {
+      const keys = await redisClient.keys(`${DocumentMemoryService.PREFIX}*`);
+      const documents: Document[] = [];
+
+      for (const key of keys) {
+        const data = await redisClient.get(key);
+        if (data) {
+          const parsed = JSON.parse(data);
+          documents.push(new Document(parsed.id, parsed.title, parsed.content));
+        }
+      }
+      return documents;
+    } catch (error) {
+      console.error("Erro ao listar documentos do Redis:", error);
+      return [];
+    }
   }
 
-  // Retorna o estado atual do documento (seu conteúdo)
-  getCurrentDocument(documentId: string): Document {
+  async getCurrentDocument(documentId: string): Promise<Document> {
     return this.getDocument(documentId);
   }
 }

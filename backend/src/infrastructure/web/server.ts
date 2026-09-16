@@ -7,6 +7,8 @@ import { WebSocketServer } from "ws";
 import { routes } from "./routes";
 import { setupWebSocketRoutes } from "../websocket/setupWebSocketRoutes";
 import { connectRabbitMQ } from "../rabbitmq/rabbitmq";
+import { connectRedis } from '../redis/redisClient';
+import "../persistence/database";
 
 const app = express();
 
@@ -37,6 +39,7 @@ setupWebSocketRoutes(wss);
 async function start() {
     try {
         await connectRabbitMQ();
+        await connectRedis();
 
         server.listen(PORT, () => {
             console.log(`🚀 Backend iniciado na porta ${PORT}`);
