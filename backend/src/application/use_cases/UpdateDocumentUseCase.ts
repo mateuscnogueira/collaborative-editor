@@ -2,27 +2,25 @@ import { randomUUID } from "crypto";
 import { TextChange } from "../../domain/entities/TextChange";
 import { DocumentVersion } from "../../domain/entities/DocumentVersion";
 import { IDocumentRepository } from "../../domain/repositories/IDocumentRepository";
-import { RabbitMQPublisher } from "../../infrastructure/rabbitmq/RabbitMQPublisher";
+import { IOutboxRepository } from "../../domain/repositories/IOutboxRepository";
 
 export class UpdateDocumentUseCase {
-
   constructor(
     private documentRepository: IDocumentRepository,
-    private publisher: RabbitMQPublisher
+    private outboxRepository: IOutboxRepository // Substituímos o RabbitMQ pelo Outbox
   ) {}
 
-  // Tornamos o método assíncrono
   async execute(change: TextChange): Promise<void> {
-
-    // Adicionamos o 'await' para esperar o Redis responder
+    // 1. Atualiza o cache no Redis
     const document = await this.documentRepository.updateDocument(
       change.documentId,
       change.content
     );
 
-    // Cria um snapshot da nova versão
+    // 2. Cria o snapshot da nova versão
+    const versionId = randomUUID();
     const version = new DocumentVersion(
-      randomUUID(),
+      versionId,
       document.id,
       document.content,
       change.userId,
@@ -30,11 +28,13 @@ export class UpdateDocumentUseCase {
       new Date()
     );
 
-    // Publica para o RabbitMQ
-    this.publisher.publish(version);
+    // 3. Salva no banco de dados local (Outbox) como PENDING
+    // Ao invés de arriscar enviar pela rede agora, garantimos a persistência local
+    const payload = JSON.stringify(version);
+    await this.outboxRepository.saveMessage(versionId, payload);
 
     console.log(
-      `📄 Documento ${document.id} atualizado por ${change.userId}`
+      `📦 Mensagem de atualização salva no Outbox (Doc: ${document.id}, User: ${change.userId})`
     );
   }
 }

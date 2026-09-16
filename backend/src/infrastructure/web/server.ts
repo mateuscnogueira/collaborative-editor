@@ -8,6 +8,7 @@ import { routes } from "./routes";
 import { setupWebSocketRoutes } from "../websocket/setupWebSocketRoutes";
 import { connectRabbitMQ } from "../rabbitmq/rabbitmq";
 import { connectRedis } from '../redis/redisClient';
+import "../persistence/database";
 
 const app = express();
 
