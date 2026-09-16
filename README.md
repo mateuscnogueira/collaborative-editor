@@ -177,7 +177,7 @@ docker stop collaborative-rabbitmq
 
 2. Digite um texto no editor
 
-3. Observe os logs do backend armazenando a edição com segurança no banco local
+3. Observe os logs do backend. O sistema apresentará erros de canal fechado (```Channel closed```), mas a aplicação não vai quebrar. Ela continuará armazenando as edições com segurança no banco local (Outbox).
 
 4. Ligue o RabbitMQ novamente 
 
@@ -185,6 +185,12 @@ docker stop collaborative-rabbitmq
 docker start collaborative-rabbitmq
 ```
 
-5. O sistema enviará automaticamente as mensagens pendentes para o Worker.
+5. Solução de Contorno (Limitação da Biblioteca): A biblioteca ```amqplib``` do Node.js não possui um mecanismo nativo de reconexão automática após a queda do serviço. Para restabelecer o canal neste teste, reinicie o backend:
+
+```
+docker restart collaborative-backend
+```
+
+6. Após o reinício, observe os logs. O backend conectará ao RabbitMQ com sucesso e o _Polling Publisher_ (processo em background) lerá o banco de dados e disparará todas as mensagens pendentes para a fila de uma só vez, garantindo que nenhum dado tenha sido perdido durante a falha.
 
 ---
