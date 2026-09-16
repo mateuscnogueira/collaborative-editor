@@ -20,16 +20,21 @@ export function setupWebSocketRoutes(wss: WebSocketServer): void {
     documentRepository
   );
 
-  wss.on("connection", (ws, request) => {
+  // 1. Adicionamos o 'async' aqui no callback
+  wss.on("connection", async (ws, request) => {
 
     const url = new URL(request.url || "/","http://localhost");
-
     const userId = url.searchParams.get("userId") || "anonymous";
 
-    webSocketController.handleConnection(
-      ws,
-      userId,
-      clients
-    );
+    // 2. Envolvemos a chamada em um try/catch e adicionamos o 'await'
+    try {
+        await webSocketController.handleConnection(
+          ws,
+          userId,
+          clients
+        );
+    } catch (error) {
+        console.error(`Erro ao estabelecer conexão para o usuário ${userId}:`, error);
+    }
   });
 }

@@ -11,10 +11,11 @@ export class UpdateDocumentUseCase {
     private publisher: RabbitMQPublisher
   ) {}
 
-  execute(change: TextChange): void {
+  // Tornamos o método assíncrono
+  async execute(change: TextChange): Promise<void> {
 
-    // Atualiza o documento em memória
-    const document = this.documentRepository.updateDocument(
+    // Adicionamos o 'await' para esperar o Redis responder
+    const document = await this.documentRepository.updateDocument(
       change.documentId,
       change.content
     );
